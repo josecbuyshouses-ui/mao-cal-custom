@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Flip Deal Calculator - Custom UI</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: #fff;
+  margin:0; padding:0;
+}
+h1 { text-align:center; padding:20px; font-size:2rem; text-shadow:1px 1px 5px #000; }
+.container { max-width:800px; margin:auto; padding:20px; }
+
+/* Cards */
+.card { background: rgba(0,0,0,0.25); border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.3); backdrop-filter: blur(5px); }
+label { display:block; margin-top:10px; font-weight:bold; }
+input[type=number], input[type=range] {
+  width:100%; margin:5px 0; padding:10px; border-radius:8px; border:none; background: rgba(255,255,255,0.2); color:#fff;
+}
+input[type=range]::-webkit-slider-thumb { background:#ff7f50; cursor:pointer; border-radius:50%; }
+input[type=range]::-moz-range-thumb { background:#ff7f50; cursor:pointer; border-radius:50%; }
+
+button {
+  width:100%; background:#ff9800; color:#fff; font-size:1.1rem; padding:12px; border:none; border-radius:10px; cursor:pointer; margin-top:10px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+button:hover { background:#ff6f00; }
+
+.output-section { background: rgba(0,0,0,0.35); padding:15px; border-radius:10px; font-weight:bold; margin-top:10px; }
+
+canvas { max-width:100%; margin-top:20px; }
+
+@media (max-width:600px) { .container{padding:10px;} h1{font-size:1.5rem;} }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>MAO Calculator - Custom UI</h1>
+
+<div class="card">
+<label>After Repair Value (ARV)</label>
+<input id="arv" type="number" value="285000" />
+
+<label>Rehab Budget</label>
+<input id="rehab" type="number" value="45000" />
+
+<label>MAO % (default 70%)</label>
+<input id="maoPercent" type="range" min="50" max="80" value="70" oninput="document.getElementById('maoPercentDisplay').innerText=this.value+'%'">
+<span id="maoPercentDisplay">70%</span>
+
+<button onclick="calculateMAO()">Calculate</button>
+</div>
+
+<div class="card output-section" id="results"></div>
+
+<div class="card">
+<h3>Profit vs Offer Chart</h3>
+<canvas id="profitChart" height="200"></canvas>
+</div>
+
+</div>
+
+<script>
+let profitChart;
+
+function calculateMAO(){
+const arv=parseFloat(document.getElementById("arv").value);
+const rehab=parseFloat(document.getElementById("rehab").value);
+const maoPercent=parseFloat(document.getElementById("maoPercent").value)/100;
+
+const mao=arv*maoPercent-rehab;
+const initialOffer=mao*0.85;
+const secondaryOffer=mao*0.95;
+
+document.getElementById("results").innerHTML=`
+Max Allowable Offer (MAO): $${mao.toLocaleString()}<br>
+Initial Offer (15% below MAO): $${initialOffer.toLocaleString()}<br>
+Secondary Offer (5% below MAO): $${secondaryOffer.toLocaleString()}
+`;
+
+// Profit vs Offer chart
+const offers=[initialOffer, secondaryOffer, mao];
+const profits=offers.map(o=>arv-rehab-o);
+
+const ctx=document.getElementById('profitChart').getContext('2d');
+if(profitChart) profitChart.destroy();
+profitChart=new Chart(ctx,{
+type:'line',
+data:{labels:offers.map(x=>`$${x.toLocaleString()}`),
+datasets:[{label:'Profit',data:profits,borderColor:'#ffeb3b',backgroundColor:'rgba(255,235,59,0.2)',fill:true}]},
+options:{responsive:true,scales:{y:{beginAtZero:true}}}
+});
+}
+</script>
+
+</body>
+</html>
